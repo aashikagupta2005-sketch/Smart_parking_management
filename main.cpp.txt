@@ -1,0 +1,336 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+// Stores the details of one vehicle and its owner.
+class Vehicle {
+private:
+    string ownerName;
+    string vehicleNumber;
+    string vehicleType;
+    int slotNumber;
+
+public:
+    Vehicle() {
+        ownerName = "";
+        vehicleNumber = "";
+        vehicleType = "";
+        slotNumber = 0;
+    }
+
+    void setDetails(string name, string number, string type, int slot) {
+        ownerName = name;
+        vehicleNumber = number;
+        vehicleType = type;
+        slotNumber = slot;
+    }
+
+    string getOwnerName() {
+        return ownerName;
+    }
+
+    string getVehicleNumber() {
+        return vehicleNumber;
+    }
+
+    string getVehicleType() {
+        return vehicleType;
+    }
+
+    int getSlotNumber() {
+        return slotNumber;
+    }
+
+    void clearDetails() {
+        ownerName = "";
+        vehicleNumber = "";
+        vehicleType = "";
+        slotNumber = 0;
+    }
+
+    void displayDetails() {
+        cout << "Owner Name     : " << ownerName << endl;
+        cout << "Vehicle Number : " << vehicleNumber << endl;
+        cout << "Vehicle Type   : " << vehicleType << endl;
+        cout << "Slot Number    : " << slotNumber << endl;
+    }
+};
+
+// Manages all parking slots and vehicle records.
+class ParkingSystem {
+private:
+    static const int TOTAL_SLOTS = 10;
+
+    Vehicle vehicles[TOTAL_SLOTS];
+    bool occupied[TOTAL_SLOTS];
+    string slotTypes[TOTAL_SLOTS];
+
+public:
+    ParkingSystem() {
+        for (int i = 0; i < TOTAL_SLOTS; i++) {
+            occupied[i] = false;
+        }
+
+        // Slots 1-4 are for bikes, 5-8 for cars, 9-10 for trucks.
+        for (int i = 0; i < 4; i++) {
+            slotTypes[i] = "Bike";
+        }
+
+        for (int i = 4; i < 8; i++) {
+            slotTypes[i] = "Car";
+        }
+
+        for (int i = 8; i < 10; i++) {
+            slotTypes[i] = "Truck";
+        }
+    }
+
+    void newEntry() {
+        string name, number, type;
+
+        cout << "\n========== NEW VEHICLE ENTRY ==========\n";
+
+        cout << "Enter owner name: ";
+        cin.ignore();
+        getline(cin, name);
+
+        cout << "Enter vehicle number: ";
+        getline(cin, number);
+
+        cout << "\nSelect vehicle type:\n";
+        cout << "1. Bike\n";
+        cout << "2. Car\n";
+        cout << "3. Truck\n";
+        cout << "Enter choice: ";
+
+        int choice;
+        cin >> choice;
+
+        if (choice == 1) {
+            type = "Bike";
+        } else if (choice == 2) {
+            type = "Car";
+        } else if (choice == 3) {
+            type = "Truck";
+        } else {
+            cout << "Invalid vehicle type!\n";
+            return;
+        }
+
+        if (name.empty() || number.empty()) {
+            cout << "Name and vehicle number cannot be empty.\n";
+            return;
+        }
+
+        // Do not allow the same vehicle to be entered twice.
+        for (int i = 0; i < TOTAL_SLOTS; i++) {
+            if (occupied[i] &&
+                vehicles[i].getVehicleNumber() == number) {
+                cout << "This vehicle is already parked.\n";
+                return;
+            }
+        }
+
+        // Find the first empty slot suitable for this vehicle.
+        for (int i = 0; i < TOTAL_SLOTS; i++) {
+            if (!occupied[i] && slotTypes[i] == type) {
+                occupied[i] = true;
+                vehicles[i].setDetails(name, number, type, i + 1);
+
+                cout << "\nVehicle entry successful!\n";
+                cout << "Your parking details:\n";
+                vehicles[i].displayDetails();
+                return;
+            }
+        }
+
+        cout << "Sorry! No " << type << " slot is available.\n";
+    }
+
+    void vehicleExit() {
+        string number;
+
+        cout << "\n========== VEHICLE EXIT ==========\n";
+        cout << "Enter vehicle number: ";
+        cin >> ws;
+        getline(cin, number);
+
+        for (int i = 0; i < TOTAL_SLOTS; i++) {
+            if (occupied[i] &&
+                vehicles[i].getVehicleNumber() == number) {
+
+                cout << "\nVehicle found. Parking details:\n";
+                vehicles[i].displayDetails();
+
+                occupied[i] = false;
+                vehicles[i].clearDetails();
+
+                cout << "\nVehicle exited successfully.\n";
+                cout << "Slot " << i + 1 << " is now available.\n";
+                return;
+            }
+        }
+
+        cout << "Vehicle not found in the parking area.\n";
+    }
+
+    void viewBookedSlots() {
+        cout << "\n========== BOOKED PARKING SLOTS ==========\n";
+
+        bool found = false;
+
+        for (int i = 0; i < TOTAL_SLOTS; i++) {
+            if (occupied[i]) {
+                found = true;
+                cout << "\n-----------------------------\n";
+                vehicles[i].displayDetails();
+            }
+        }
+
+        if (!found) {
+            cout << "No parking slots are currently booked.\n";
+        }
+    }
+
+    void viewAvailableSlots() {
+        cout << "\n========== AVAILABLE PARKING SLOTS ==========\n";
+
+        bool found = false;
+
+        for (int i = 0; i < TOTAL_SLOTS; i++) {
+            if (!occupied[i]) {
+                found = true;
+                cout << "Slot " << i + 1
+                     << " - " << slotTypes[i] << " - Available\n";
+            }
+        }
+
+        if (!found) {
+            cout << "No parking slots are available.\n";
+        }
+    }
+
+    void searchVehicle() {
+        string number;
+
+        cout << "\n========== SEARCH VEHICLE ==========\n";
+        cout << "Enter vehicle number: ";
+        cin >> ws;
+        getline(cin, number);
+
+        for (int i = 0; i < TOTAL_SLOTS; i++) {
+            if (occupied[i] &&
+                vehicles[i].getVehicleNumber() == number) {
+                cout << "\nVehicle record found:\n";
+                vehicles[i].displayDetails();
+                return;
+            }
+        }
+
+        cout << "No record found for this vehicle number.\n";
+    }
+
+    void showSummary() {
+        int booked = 0;
+        int available = 0;
+        int bikeBooked = 0;
+        int carBooked = 0;
+        int truckBooked = 0;
+
+        for (int i = 0; i < TOTAL_SLOTS; i++) {
+            if (occupied[i]) {
+                booked++;
+
+                if (slotTypes[i] == "Bike") {
+                    bikeBooked++;
+                } else if (slotTypes[i] == "Car") {
+                    carBooked++;
+                } else if (slotTypes[i] == "Truck") {
+                    truckBooked++;
+                }
+            } else {
+                available++;
+            }
+        }
+
+        cout << "\n========== PARKING SUMMARY ==========\n";
+        cout << "Total Slots     : " << TOTAL_SLOTS << endl;
+        cout << "Slots Booked    : " << booked << endl;
+        cout << "Slots Available : " << available << endl;
+
+        cout << "\nBike Slots  : " << bikeBooked << " booked, "
+             << 4 - bikeBooked << " available (out of 4)\n";
+
+        cout << "Car Slots   : " << carBooked << " booked, "
+             << 4 - carBooked << " available (out of 4)\n";
+
+        cout << "Truck Slots : " << truckBooked << " booked, "
+             << 2 - truckBooked << " available (out of 2)\n";
+
+        cout << "=====================================\n";
+    }
+};
+
+int main() {
+    ParkingSystem parking;
+    int choice;
+
+    do {
+        cout << "\n";
+        cout << "============================================\n";
+        cout << "       SMART PARKING MANAGEMENT SYSTEM\n";
+        cout << "============================================\n";
+        cout << "1. New Vehicle Entry\n";
+        cout << "2. Vehicle Exit\n";
+        cout << "3. View Booked Slots (Owner Details)\n";
+        cout << "4. View Available Slots\n";
+        cout << "5. Search Vehicle Details\n";
+        cout << "6. Parking Summary\n";
+        cout << "0. Exit\n";
+        cout << "============================================\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                parking.newEntry();
+                parking.showSummary();
+                break;
+
+            case 2:
+                parking.vehicleExit();
+                parking.showSummary();
+                break;
+
+            case 3:
+                parking.viewBookedSlots();
+                parking.showSummary();
+                break;
+
+            case 4:
+                parking.viewAvailableSlots();
+                parking.showSummary();
+                break;
+
+            case 5:
+                parking.searchVehicle();
+                parking.showSummary();
+                break;
+
+            case 6:
+                parking.showSummary();
+                break;
+
+            case 0:
+                cout << "\nThank you for using Smart Parking System!\n";
+                break;
+
+            default:
+                cout << "\nInvalid choice. Please try again.\n";
+                parking.showSummary();
+        }
+
+    } while (choice != 0);
+
+    return 0;
+}
